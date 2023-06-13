@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Known knowns
 - PLACEHOLDER REMOVE IF EMPTY: risks that were introduced or discovered in the release and are known but not resolved
 
+## [2.7.0]
+### Added
+- Handling of Decentral Digital Twin Registry as a way of request AAS for identifier
+  - Extend Register Job with key field that contain BPN and globalAssetId
+  - Requesting BPN endpoint catalog over Discrovery Finder
+  - Requesting EDC endpoint addresses for BPN over EDC Discovery Finder
+  - Add filter for catalog item search in EDC
+  - Authorize Digital Twin client with EDC Endpoint Reference
+
 ## [2.6.1] - 2023-05-15
 ### Added
 - Validation if bpnEndpoint is set in properties before starting a job with lookupBPNs set to true
