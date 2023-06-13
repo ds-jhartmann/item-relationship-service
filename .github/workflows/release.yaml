@@ -25,19 +25,6 @@ jobs:
         with:
           cmd: yq -i eval '.version = "${{ env.HELM_VERSION }}"' charts/irs-helm/Chart.yaml
 
-      - name: Prepare Helm release
-        uses: peter-evans/create-pull-request@v5
-        with:
-          commit-message: "chore(release): Prepare release for Helm version ${{ env.HELM_VERSION }}"
-          branch: chore/prepare-helm-release-${{ env.HELM_VERSION }}
-          base: main
-          delete-branch: true
-          title: Prepare Helm release for next version
-          body: |
-            This PR prepares the Helm chart release for version ${{ env.HELM_VERSION }}. 
-            Please check whether the Chart was updated correctly and that the CHANGELOG contains the relevant information
-            for this release. Also, make sure that the values.yaml is correct before merging this PR.
-
       - name: Get previous version
         run: echo PREVIOUS_VERSION=$(git tag | grep -E ^[0-9]+\\.[0-9]+\\.[0-9]+ | tail -2 | head -n +1) >> $GITHUB_ENV
       - name: Extract changelog text
@@ -53,6 +40,21 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           body: ${{ env.CHANGELOG }}
+
+
+      - name: Prepare Helm release
+        uses: peter-evans/create-pull-request@v5
+        with:
+          commit-message: "chore(release): Prepare release for Helm version ${{ env.HELM_VERSION }}"
+          branch: chore/prepare-helm-release-${{ env.HELM_VERSION }}
+          base: main
+          delete-branch: true
+          title: Prepare Helm release for next version
+          body: |
+            This PR prepares the Helm chart release for version ${{ env.HELM_VERSION }}. 
+            Please check whether the Chart was updated correctly and that the CHANGELOG contains the relevant information
+            for this release. Also, make sure that the values.yaml is correct before merging this PR.
+
 
   trigger-jira:
     needs:
