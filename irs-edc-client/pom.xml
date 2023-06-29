@@ -13,7 +13,13 @@
     <artifactId>irs-edc-client</artifactId>
     <name>EDC Client</name>
     <description>Client library to easily talk to the EDC</description>
-
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/ds-jhartmann/item-relationship-service</url>
+        </repository>
+    </distributionManagement>
     <dependencies>
         <dependency>
             <groupId>org.eclipse.tractusx.irs</groupId>
