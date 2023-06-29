@@ -24,6 +24,13 @@
         <module>docs</module>
         <module>irs-load-tests</module>
     </modules>
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/ds-jhartmann/item-relationship-service</url>
+        </repository>
+    </distributionManagement>
 
     <properties>
         <java.version>17</java.version>
