@@ -26,6 +26,6 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
 
       - name: Publish package
-        run: mvn --batch-mode deploy
+        run: mvn --batch-mode deploy -pl '!irs-integration-tests,!irs-report-aggregate,!irs-load-tests,!docs,!irs-cucumber-tests,!irs-testing'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
