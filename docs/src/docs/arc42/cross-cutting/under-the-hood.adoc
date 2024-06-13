@@ -1,6 +1,6 @@
 = "Under-the-hood" concepts
 
-== Persistency
+== Persistence
 The IRS stores two types of data in a persistent way:
 
 - Job metadata
@@ -20,7 +20,7 @@ There currently is no transaction management in the IRS.
 There is no session handling in the IRS, access is solely based on bearer tokens, the API is stateless.
 
 == Communication and integration
-All interfaces to other systems are using RESTful calls over HTTP(S). Where central authentication is required, a common Keycloak instance is used.
+All interfaces to other systems are using RESTful calls over HTTP(S). Where central authentication is required, a common OAuth2 provider is used.
 
 For outgoing calls, the Spring RestTemplate mechanism is used and separate RestTemplates are created for the different ways of authentication.
 
@@ -57,7 +57,7 @@ It's good to inform the user, why their request did not work, but only if they c
 == Parallelization and threading
 The heart of the IRS is the parallel execution of planned jobs. As almost each job requires multiple calls to various endpoints, those are done in parallel as well to reduce the total execution time for each job.
 
-Tasks execution is orchestrated by the JobOrchestrator class. It utilizes a cental ExecutorService, which manages the number of threads and schedules new Task as they come in.
+Tasks execution is orchestrated by the JobOrchestrator class. It utilizes a central ExecutorService, which manages the number of threads and schedules new Task as they come in.
 
 
 
@@ -66,6 +66,21 @@ Data validation happens at two points:
 
 - IRS API: the data sent by the client is validated to match the model defined in the IRS. If the validation fails, the IRS sends a HTTP 400 response and indicates the problem to the caller.
 - Submodel payload: each time a submodel payload is requested from via EDC, the data is validated against the model defined in the SemanticHub for the matching aspect type.
+- EDC Contract Offer Policy: each time IRS consumes data over the EDC, the policies of the offered contract will be validated. IDs of so-called "Rahmenverträgen" or Framework-Agreements can be added to the IRS Policy Store to be accepted by the IRS. If a Contract Offer does not match any of the IDs store in Policy Store, the contract offer will be declined and no data will be consumed.
+
+== Policy Store
+
+The IRS gives its users the ability to manage, create and delete complex policies containing permissions and constraints in order to obtain the most precise control over access and use of data received from the edc provider. Policies stored in Policy Store will serve as input with allowed restriction and will be checked against every item from EDC Catalog.
+
+The structure of a Policy that can be stored in storage can be easily viewed by using Policy Store endpoints in the published API documentation. Each policy may contain more than one permission, which in turn consists of constraints linked together by AND or OR relationships. This model provides full flexibility and control over stored access and use policies.
+
+== Digital Twin / EDC requirements
+
+In order to work with the decentral network approach, IRS requires the Digital Twin to contain a `"subprotocolBody"` in each of the submodelDescriptor endpoints. This `"subprotocolBody"` has to contain the `"id"` of the EDC asset, as well as the `"dspEndpoint"` of the EDC, separated by a semicolon (e.g. `"subprotocolBody": "id=123;dspEndpoint=http://edc.control.plane/api/v1/dsp"`).
+
+The `"dspEndpoint"` is used to request the EDC catalog of the dataprovider and the `"id"` to filter for the exact asset inside this catalog.
+
+If the `"dspEndpoint"` is not present, every available EDC endpoint in DiscoveryService will be queried until a asset with the `"id"` can be found.
 
 == Caching
 

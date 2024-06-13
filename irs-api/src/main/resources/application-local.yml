@@ -3,6 +3,14 @@ blobstore:
   accessKey: minioadmin
   secretKey: minioadmin
 
+policystore:
+  persistence:
+    endpoint: http://localhost:9000
+    accessKey: minioadmin
+    secretKey: minioadmin
+
+digitalTwinRegistry.type: central
+
 irs:
   job:
     cleanup:
@@ -22,7 +30,7 @@ spring:
           jwk-set-uri: https://localhost
       client:
         provider:
-          keycloak:
+          common:
             token-uri: https://localhost
 
 # ESS Module specific properties

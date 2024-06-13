@@ -1,0 +1,21 @@
+{
+	"IRS_HOST": "https://irs.dev.demo.catena-x.net",
+	"OAUTH2_TOKEN_URL": "https://centralidp.int.demo.catena-x.net/auth/realms/CX-Central/protocol/openid-connect/token",
+	"CLIENT_ID": "",
+	"CLIENT_SECRET": "",
+	"ADMIN_API_KEY": "",
+	"REGULAR_API_KEY": "",
+	"DIGITAL_TWIN_REGISTRY": "https://irs-aas-registry.dev.demo.catena-x.net/semantics/registry",
+	"GLOBAL_ASSET_ID": "urn:uuid:f719e96e-2d7a-4d25-b351-7ad81db4f12a",
+	"BPN": "BPNL00000003AYRE",
+	"SEMANTIC_HUB_URL": "https://semantics.int.demo.catena-x.net",
+	"BPDM_URL": "https://partners-pool.int.demo.catena-x.net",
+	"CONSUMER_CONTROLPLANE": "https://irs-consumer-controlplane.dev.demo.catena-x.net",
+	"PROVIDER_CONTROLPLANE_1": "https://irs-provider-controlplane.dev.demo.catena-x.net",
+	"PROVIDER_CONTROLPLANE_2": "https://irs-provider-controlplane2.dev.demo.catena-x.net",
+	"PROVIDER_CONTROLPLANE_3": "https://irs-provider-controlplane3.dev.demo.catena-x.net",
+	"EDC_API_KEY": "123456",
+	"DISCOVERY_FINDER": "https://discovery-mock.dev.demo.catena-x.net",
+	"BPN_DISCOVERY": "https://discovery-mock.dev.demo.catena-x.net",
+	"EDC_DISCOVERY": "https://discovery-mock.dev.demo.catena-x.net"
+}

@@ -1,0 +1,65 @@
+tractusx-connector:
+  iatp:
+    sts:
+      oauth:
+        client:
+          id: <path:traceability-irs/data/dev/controlplane#dimClientId>
+          secret_alias: dim-secret-dev
+
+  controlplane:
+    ingresses:
+      - enabled: true
+        hostname: "irs-provider-controlplane3.dev.demo.catena-x.net"
+        annotations:
+          nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+          nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        endpoints:
+          - protocol
+          - management
+        tls:
+          enabled: true
+          secretName: tls-secret
+
+  dataplane:
+    token:
+      signer:
+        privatekey_alias: dev-provider3-key
+      verifier:
+        publickey_alias: dev-provider3-cert
+
+    ingresses:
+      - enabled: true
+        hostname: "irs-provider-dataplane3.dev.demo.catena-x.net"
+        annotations:
+          nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+          nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+          nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        endpoints:
+          - public
+        className: "nginx"
+        tls:
+          enabled: true
+          secretName: tls-secret
+
+  vault:
+    secretNames:
+      transferProxyTokenSignerPrivateKey: dev-provider3-key
+      transferProxyTokenSignerPublicKey: dev-provider3-cert
+      transferProxyTokenEncryptionAesKey: test-edc-encryption-key
+
+  postgresql:
+    jdbcUrl: "jdbc:postgresql://irs-provider3-edc-postgresql-hl:5432/edc"
+
+simple-data-backend:
+  ingress:
+    enabled: true
+    hosts:
+      - host: "irs-submodel-server3.dev.demo.catena-x.net"
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls:
+      - hosts:
+          - "irs-submodel-server3.dev.demo.catena-x.net"
+        secretName: tls-secret

@@ -1,0 +1,19 @@
+{
+	"IRS_HOST": "http://localhost:8080",
+	"OAUTH2_TOKEN_URL": "http://localhost:4011/connect/token",
+	"CLIENT_ID": "",
+	"CLIENT_SECRET": "",
+	"ADMIN_API_KEY": "",
+	"REGULAR_API_KEY": "",
+	"DIGITAL_TWIN_REGISTRY": "http://localhost:10200",
+	"GLOBAL_ASSET_ID": "urn:uuid:6ce41c0b-c84a-46b0-b4c4-78fce958663f",
+	"BPN": "BPNL00000003AZQP",
+	"SEMANTIC_HUB_URL": "http://localhost:8088",
+	"BPDM_URL": "",
+	"CONSUMER_CONTROLPLANE": "http://localhost:7181",
+	"PROVIDER_CONTROLPLANE_1": "http://localhost:6181",
+	"EDC_API_KEY": "password",
+	"DISCOVERY_FINDER": "http://localhost:8888",
+	"BPN_DISCOVERY": "http://localhost:8888",
+	"EDC_DISCOVERY": "http://localhost:8888"
+}

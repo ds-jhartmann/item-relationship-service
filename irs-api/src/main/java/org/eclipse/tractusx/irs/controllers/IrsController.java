@@ -11,7 +11,8 @@
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
- * https://www.apache.org/licenses/LICENSE-2.0. *
+ * https://www.apache.org/licenses/LICENSE-2.0.
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -46,6 +47,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.tractusx.irs.IrsApplication;
+import org.eclipse.tractusx.irs.common.auth.IrsRoles;
 import org.eclipse.tractusx.irs.component.Job;
 import org.eclipse.tractusx.irs.component.JobHandle;
 import org.eclipse.tractusx.irs.component.Jobs;
@@ -55,14 +57,15 @@ import org.eclipse.tractusx.irs.component.enums.JobState;
 import org.eclipse.tractusx.irs.connector.job.IrsTimer;
 import org.eclipse.tractusx.irs.dtos.ErrorResponse;
 import org.eclipse.tractusx.irs.semanticshub.AspectModels;
-import org.eclipse.tractusx.irs.services.AuthorizationService;
+import org.eclipse.tractusx.irs.common.auth.AuthorizationService;
 import org.eclipse.tractusx.irs.services.IrsItemGraphQueryService;
 import org.eclipse.tractusx.irs.services.SemanticHubService;
 import org.eclipse.tractusx.irs.services.validation.SchemaNotFoundException;
-import org.springdoc.api.annotations.ParameterObject;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springdoc.core.converters.models.PageableAsQueryParam;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -87,15 +90,13 @@ import org.springframework.web.bind.annotation.RestController;
 })
 public class IrsController {
 
-
-
     private final IrsItemGraphQueryService itemJobService;
     private final SemanticHubService semanticHubService;
     private final AuthorizationService authorizationService;
 
     @Operation(operationId = "registerJobForGlobalAssetId",
                summary = "Register an IRS job to retrieve an item graph for given {globalAssetId}.",
-               security = @SecurityRequirement(name = "oAuth2", scopes = "profile email"),
+               security = @SecurityRequirement(name = "oAuth2"),
                tags = { "Item Relationship Service" },
                description = "Register an IRS job to retrieve an item graph for given {globalAssetId}.")
     @ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Returns id of registered job.",
@@ -127,7 +128,7 @@ public class IrsController {
     @IrsTimer("registerjob")
     @PostMapping("/jobs")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("@authorizationService.verifyBpn() && hasAuthority('view_irs')")
+    @PreAuthorize("@authorizationService.verifyBpn() && hasAnyAuthority('" + IrsRoles.ADMIN_IRS + "', '" + IrsRoles.VIEW_IRS + "')")
     public JobHandle registerJobForGlobalAssetId(final @Valid @RequestBody RegisterJob request) {
         return itemJobService.registerItemJob(request);
     }
@@ -135,7 +136,7 @@ public class IrsController {
     @Operation(description = "Return job with optional item graph result for requested id.",
                operationId = "getJobForJobId",
                summary = "Return job with optional item graph result for requested id.",
-               security = @SecurityRequirement(name = "oAuth2", scopes = "profile email"),
+               security = @SecurityRequirement(name = "oAuth2"),
                tags = { "Item Relationship Service" })
     @ApiResponses(value = { @ApiResponse(responseCode = "200",
                                          description = "Return job with item graph for the requested id.",
@@ -178,21 +179,25 @@ public class IrsController {
     })
     @IrsTimer("getjob")
     @GetMapping("/jobs/{id}")
-    @PreAuthorize("@authorizationService.verifyBpn() && hasAuthority('view_irs')")
-    public Jobs getJobById(
+    @PreAuthorize("@authorizationService.verifyBpn() && hasAnyAuthority('" + IrsRoles.ADMIN_IRS + "', '" + IrsRoles.VIEW_IRS + "')")
+    public ResponseEntity<Jobs> getJobById(
             @Parameter(description = "Id of the job.", schema = @Schema(implementation = UUID.class), name = "id",
                        example = "6c311d29-5753-46d4-b32c-19b918ea93b0") @Size(min = IrsAppConstants.JOB_ID_SIZE,
                                                                                max = IrsAppConstants.JOB_ID_SIZE) @Valid @PathVariable final UUID id,
             @Parameter(
-                    description = "<true> Return job with current processed item graph. <false> Return job with item graph if job is in state <COMPLETED>, otherwise job.") @Schema(
+                    description = "\\<true\\> Return job with current processed item graph. \\<false\\> Return job with item graph if job is in state COMPLETED, otherwise job.") @Schema(
                     implementation = Boolean.class, defaultValue = "true") @RequestParam(value = "returnUncompletedJob",
                                                                                          required = false) final boolean returnUncompletedJob) {
-        return itemJobService.getJobForJobId(id, returnUncompletedJob);
+        final Jobs job = itemJobService.getJobForJobId(id, returnUncompletedJob);
+        if (job.getJob().getState().equals(JobState.RUNNING)) {
+            return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT).body(job);
+        }
+        return ResponseEntity.ok(job);
     }
 
     @Operation(description = "Cancel job for requested jobId.", operationId = "cancelJobByJobId",
                summary = "Cancel job for requested jobId.",
-               security = @SecurityRequirement(name = "oAuth2", scopes = "profile email"),
+               security = @SecurityRequirement(name = "oAuth2"),
                tags = { "Item Relationship Service" })
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Job with requested jobId canceled.",
                                         content = { @Content(mediaType = APPLICATION_JSON_VALUE,
@@ -227,7 +232,7 @@ public class IrsController {
     })
     @IrsTimer("canceljob")
     @PutMapping("/jobs/{id}")
-    @PreAuthorize("@authorizationService.verifyBpn() && hasAuthority('view_irs')")
+    @PreAuthorize("@authorizationService.verifyBpn() && hasAnyAuthority('" + IrsRoles.ADMIN_IRS + "', '" + IrsRoles.VIEW_IRS + "')")
     public Job cancelJobByJobId(
             @Parameter(description = "Id of the job.", schema = @Schema(implementation = UUID.class), name = "id",
                        example = "6c311d29-5753-46d4-b32c-19b918ea93b0") @Size(min = IrsAppConstants.JOB_ID_SIZE,
@@ -238,7 +243,7 @@ public class IrsController {
 
     @Operation(description = "Returns paginated jobs with state and execution times.", operationId = "getJobsByJobStates",
                summary = "Returns paginated jobs with state and execution times.",
-               security = @SecurityRequirement(name = "oAuth2", scopes = "profile email"),
+               security = @SecurityRequirement(name = "oAuth2"),
                tags = { "Item Relationship Service" })
     @ApiResponses(value = { @ApiResponse(responseCode = "200",
                                          description = "Paginated list of jobs with state and execution times for requested job states.",
@@ -269,21 +274,19 @@ public class IrsController {
     @IrsTimer("getjobbystate")
     @GetMapping("/jobs")
     @PageableAsQueryParam
-    @PreAuthorize("@authorizationService.verifyBpn() && hasAuthority('view_irs')")
+    @PreAuthorize("@authorizationService.verifyBpn() && hasAnyAuthority('" + IrsRoles.ADMIN_IRS + "', '" + IrsRoles.VIEW_IRS + "')")
     public PageResult getJobsByState(
             @Valid @ParameterObject @Parameter(description = "Requested job states.", in = QUERY,
                explode = Explode.FALSE, array = @ArraySchema(schema = @Schema(implementation = JobState.class), maxItems = Integer.MAX_VALUE))
             @RequestParam(value = "states", required = false, defaultValue = "") final List<JobState> states,
             @Parameter(hidden = true)
-            @RequestParam(value = "jobStates", required = false, defaultValue = "") final List<JobState> jobStates,
-            @Parameter(hidden = true)
             @ParameterObject final Pageable pageable) {
-        return itemJobService.getJobsByState(states, jobStates, pageable);
+        return itemJobService.getJobsByState(states, pageable);
     }
 
     @Operation(operationId = "getAllAspectModels",
                summary = "Get all available aspect models from semantic hub or local models.",
-               security = @SecurityRequirement(name = "oAuth2", scopes = "profile email"), tags = { "Aspect Models" },
+               security = @SecurityRequirement(name = "oAuth2"), tags = { "Aspect Models" },
                description = "Get all available aspect models from semantic hub or local models.")
     @ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Returns all available aspect models.",
                                          content = { @Content(mediaType = APPLICATION_JSON_VALUE,
@@ -305,7 +308,7 @@ public class IrsController {
                                          }),
     })
     @GetMapping("/aspectmodels")
-    @PreAuthorize("@authorizationService.verifyBpn() && hasAuthority('view_irs')")
+    @PreAuthorize("@authorizationService.verifyBpn() && hasAnyAuthority('" + IrsRoles.ADMIN_IRS + "', '" + IrsRoles.VIEW_IRS + "')")
     public AspectModels getAllAvailableAspectModels() throws SchemaNotFoundException {
         return semanticHubService.getAllAspectModels();
     }

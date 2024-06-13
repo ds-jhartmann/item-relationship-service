@@ -11,7 +11,8 @@
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
- * https://www.apache.org/licenses/LICENSE-2.0. *
+ * https://www.apache.org/licenses/LICENSE-2.0.
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -30,6 +31,8 @@ import static org.eclipse.tractusx.irs.util.TestMother.registerJobWithoutDepthAn
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -49,6 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.tractusx.irs.component.Job;
 import org.eclipse.tractusx.irs.component.JobHandle;
 import org.eclipse.tractusx.irs.component.JobStatusResult;
+import org.eclipse.tractusx.irs.component.Jobs;
 import org.eclipse.tractusx.irs.component.PageResult;
 import org.eclipse.tractusx.irs.component.RegisterJob;
 import org.eclipse.tractusx.irs.component.enums.Direction;
@@ -56,7 +60,7 @@ import org.eclipse.tractusx.irs.component.enums.JobState;
 import org.eclipse.tractusx.irs.configuration.SecurityConfiguration;
 import org.eclipse.tractusx.irs.semanticshub.AspectModel;
 import org.eclipse.tractusx.irs.semanticshub.AspectModels;
-import org.eclipse.tractusx.irs.services.AuthorizationService;
+import org.eclipse.tractusx.irs.common.auth.AuthorizationService;
 import org.eclipse.tractusx.irs.services.IrsItemGraphQueryService;
 import org.eclipse.tractusx.irs.services.SemanticHubService;
 import org.junit.jupiter.api.Test;
@@ -184,7 +188,7 @@ class IrsControllerTest {
         final String returnJobAsString = objectMapper.writeValueAsString(returnedJob);
 
         when(authorizationService.verifyBpn()).thenReturn(Boolean.TRUE);
-        when(service.getJobsByState(any(), any(), any())).thenReturn(
+        when(service.getJobsByState(any(), any())).thenReturn(
                 new PageResult(new PagedListHolder<>(List.of(returnedJob))));
 
         this.mockMvc.perform(get("/irs/jobs"))
@@ -286,6 +290,34 @@ class IrsControllerTest {
                                                      .content(new ObjectMapper().writeValueAsString(
                                                              registerJobWithoutDepthAndAspect())))
                     .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(authorities = "view_irs")
+    void shouldReturnPartialWhenJobCompleted() throws Exception {
+        final Jobs runningJob = Jobs.builder().job(Job.builder().id(jobId).state(JobState.RUNNING).build()).build();
+        final boolean shouldIncludePartial = Boolean.TRUE;
+        final boolean shouldNotIncludePartial = Boolean.FALSE;
+
+        when(authorizationService.verifyBpn()).thenReturn(Boolean.TRUE);
+        when(this.service.getJobForJobId(eq(jobId), anyBoolean())).thenReturn(runningJob);
+
+        this.mockMvc.perform(get("/irs/jobs/" + jobId).queryParam("returnUncompletedJob", String.valueOf(shouldIncludePartial))).andExpect(status().isPartialContent());
+        this.mockMvc.perform(get("/irs/jobs/" + jobId).queryParam("returnUncompletedJob", String.valueOf(shouldNotIncludePartial))).andExpect(status().isPartialContent());
+    }
+
+    @Test
+    @WithMockUser(authorities = "view_irs")
+    void shouldReturnOkWhenJobCompleted() throws Exception {
+        final Jobs completedJob = Jobs.builder().job(Job.builder().id(jobId).state(JobState.COMPLETED).build()).build();
+        final boolean shouldIncludePartial = Boolean.TRUE;
+        final boolean shouldNotIncludePartial = Boolean.FALSE;
+
+        when(authorizationService.verifyBpn()).thenReturn(Boolean.TRUE);
+        when(this.service.getJobForJobId(eq(jobId), anyBoolean())).thenReturn(completedJob);
+
+        this.mockMvc.perform(get("/irs/jobs/" + jobId).queryParam("returnUncompletedJob", String.valueOf(shouldIncludePartial))).andExpect(status().isOk());
+        this.mockMvc.perform(get("/irs/jobs/" + jobId).queryParam("returnUncompletedJob", String.valueOf(shouldNotIncludePartial))).andExpect(status().isOk());
     }
 
 }

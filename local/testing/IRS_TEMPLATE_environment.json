@@ -1,9 +1,18 @@
 {
 	"IRS_HOST": "http://localhost:8080",
-	"KEYCLOAK_TOKEN_URL": "",
+	"OAUTH2_TOKEN_URL": "",
 	"CLIENT_ID": "",
 	"CLIENT_SECRET": "",
+	"ADMIN_API_KEY": "",
+	"REGULAR_API_KEY": "",
+	"DIGITAL_TWIN_REGISTRY": "",
 	"GLOBAL_ASSET_ID": "",
+	"BPN": "",
 	"SEMANTIC_HUB_URL": "",
-	"BPDM_URL": ""
+	"BPDM_URL": "",
+	"CONSUMER_CONTROLPLANE": "",
+	"EDC_API_KEY": "",
+	"DISCOVERY_FINDER": "",
+	"BPN_DISCOVERY": "",
+	"EDC_DISCOVERY": ""
 }
