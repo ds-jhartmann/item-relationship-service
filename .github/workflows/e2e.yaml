@@ -88,5 +88,6 @@ jobs:
             --timeout=120s
 
       - name: Ping ingress
+        if: always()
         run: |
           ping example.tx.test
