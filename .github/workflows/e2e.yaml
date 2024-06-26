@@ -1,0 +1,94 @@
+name: Setup Kubernetes Cluster
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  setup-kubernetes-cluster:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v1
+
+      - name: Set up kind
+        uses: engineerd/setup-kind@v0.5.0
+        with:
+          kind-version: v0.11.1
+
+      - name: Create kind cluster
+        run: kind create cluster --wait 5m
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v1
+        with:
+          version: v1.21.0
+
+      - name: Install Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: v3.5.4
+
+      - name: Install NGINX Ingress Controller
+        run: |
+          kubectl create namespace ingress-nginx
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo update
+          helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx
+
+      - name: Verify Ingress Controller installation
+        run: |
+          kubectl wait --namespace ingress-nginx \
+            --for=condition=ready pod \
+            --selector=app.kubernetes.io/component=controller \
+            --timeout=120s
+
+      - name: Get Ingress Controller IP
+        id: get_ingress_ip
+        run: |
+          INGRESS_IP=$(kubectl get svc --namespace ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          echo "INGRESS_IP=$INGRESS_IP" >> $GITHUB_ENV
+
+      - name: Add .tx.test domain to /etc/hosts
+        run: |
+          echo "${{ env.INGRESS_IP }} example.tx.test" | sudo tee -a /etc/hosts
+
+      - name: Create Ingress Resource
+        run: |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: example-ingress
+            namespace default
+            annotations:
+              nginx.ingress.kubernetes.io/rewrite-target: /
+          spec:
+            rules:
+            - host: example.tx.test
+              http:
+                paths:
+                - path: /
+                  pathType: Prefix
+                  backend:
+                    service:
+                      name: example-service
+                      port:
+                        number: 80
+          EOF
+
+      - name: Verify Ingress Resource
+        run: |
+          kubectl wait --namespace default \
+            --for=condition=ready pod \
+            --selector=app=example-app \
+            --timeout=120s
+
+      - name: Ping ingress
+        run: |
+          ping example.tx.test
