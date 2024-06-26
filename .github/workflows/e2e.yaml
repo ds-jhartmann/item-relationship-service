@@ -63,7 +63,7 @@ jobs:
           kind: Ingress
           metadata:
             name: example-ingress
-            namespace default
+            namespace: default
             annotations:
               nginx.ingress.kubernetes.io/rewrite-target: /
           spec:
