@@ -40,6 +40,10 @@ jobs:
         run: |
           kubectl describe svc/ingress-nginx-controller -n ingress-nginx
 
+      - name: Get Pods
+        run: |
+          kubectl get pods -n ingress-nginx
+
       - name: Verify Ingress Controller installation
         run: |
           kubectl wait --namespace ingress-nginx \
@@ -50,6 +54,7 @@ jobs:
       - name: Get Ingress Controller Logs
         if: always()
         run: |
+          kubectl get pods -n ingress-nginx
           kubectl logs svc/ingress-nginx-controller -n ingress-nginx
 
       - name: Get Ingress Controller IP
