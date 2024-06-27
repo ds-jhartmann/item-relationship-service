@@ -28,7 +28,9 @@ jobs:
         run: kubectl cluster-info --context kind-kind
 
       - name: Informational - describe node
-        run: kubectl describe node
+        run: |
+          kubectl get nodes --show-labels
+          kubectl describe node
 
 #      - name: Install kubectl
 #        uses: azure/setup-kubectl@v4
@@ -40,7 +42,7 @@ jobs:
 
       - name: Install NGINX Ingress Controller
         run: |
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+          kubectl apply -f .github/configs/deploy.yaml
 
       - name: Describe Ingress Controller
         run: |
