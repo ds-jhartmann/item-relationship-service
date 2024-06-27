@@ -96,13 +96,6 @@ jobs:
           tags: kind-registry:5000/jena-fuseki-docker:4.7.0
           build-args: JENA_VERSION=4.7.0
 
-      - name: Build init container
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
-        with:
-          context: ./init-container/
-          push: true
-          tags: kind-registry:5000/init-container:testing
-
       - name: Build iatp mock
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         with:
@@ -120,6 +113,7 @@ jobs:
           --set iatpmock.image.repository=kind-registry:5000/iatp-mock --set iatpmock.image.tag=testing
 
       - name: Verify installation
+        if: always()
         run: |
           kubectl get pods -n e2e-testing
           kubectl get ingresses -n e2e-testing
