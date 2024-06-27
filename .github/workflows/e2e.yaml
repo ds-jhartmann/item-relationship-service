@@ -24,6 +24,10 @@ jobs:
           # default value for event_name != workflow_dispatch
           node_image: ${{ github.event.inputs.node_image || 'kindest/node:v1.27.3' }}
 
+      - name: Get Cluster info
+        run: |
+          kubectl cluster-info --context kind-kind
+
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
 
