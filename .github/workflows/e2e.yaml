@@ -72,19 +72,58 @@ jobs:
       - name: Add .tx.test domain to /etc/hosts
         run: |
           echo "${{ env.INGRESS_IP }} example.tx.test" | sudo tee -a /etc/hosts
-
-      - name: Create Test Ingress Resource
-        run: |
-          kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/usage.yaml
-          kubectl get pods -A
-          kubectl get ingresses -A
-
-      - name: Ping ingress
-        if: always()
-        run: |
-          # should output "foo-app"
-          curl localhost/foo/hostname
-          # should output "bar-app"
-          curl localhost/bar/hostname
+          echo "${{ env.INGRESS_IP }} example.tx.test" | sudo tee -a /etc/hosts
           
-          # ping example.tx.test
+          cat <<EOF > /etc/resolver/e2e-test
+          domain tx.test
+          nameserver ${{ env.INGRESS_IP }}
+          search_order 1
+          timeout 5
+          EOF
+          
+
+      - name: Checkout umbrella chart
+        uses: actions/checkout@v4
+        with:
+          repository: eclipse-tractusx/tractus-x-umbrella
+          ref: chore/edc-0.7.0-iam-mock
+
+      # Pull and build Jena Fuseki DB for semantic-hub
+      - name: Pull Fuseki sources
+        run: |
+          curl https://repo1.maven.org/maven2/org/apache/jena/jena-fuseki-docker/4.7.0/jena-fuseki-docker-4.7.0.zip > ./jena-fuseki.zip
+          unzip jena-fuseki.zip
+
+      - name: Build and push Fuseki DB
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56
+        with:
+          context: jena-fuseki-docker-4.7.0
+          push: true
+          tags: kind-registry:5000/jena-fuseki-docker:4.7.0
+          build-args: JENA_VERSION=4.7.0
+
+      - name: Build init container
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        with:
+          context: ./init-container/
+          push: true
+          tags: kind-registry:5000/init-container:testing
+
+      - name: Build iatp mock
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        with:
+          context: ./iatp-mock/
+          push: true
+          tags: kind-registry:5000/iatp-mock:testing
+
+      - name: Install umbrella chart
+        run: |
+          helm install umbrella charts/umbrella -f charts/values-test-data-exchange.yaml --timeout 10m \
+          --namespace e2e-testing --create-namespace --debug \
+          --set semantic-hub.graphdb.image=kind-registry:5000/jena-fuseki-docker:4.7.0 \
+          --set iatpmock.image.repository=kind-registry:5000/iatp-mock --set iatpmock.image.tag=testing
+
+      - name: Verify installation
+        run: |
+          kubectl get pods -n e2e-testing
+          kubectl get ingresses -n e2e-testing
