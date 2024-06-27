@@ -71,9 +71,7 @@ jobs:
 
       - name: Add .tx.test domain to /etc/hosts
         run: |
-          echo "${{ env.INGRESS_IP }} example.tx.test" | sudo tee -a /etc/hosts
-          echo "${{ env.INGRESS_IP }} example.tx.test" | sudo tee -a /etc/hosts
-          
+          touch /etc/resolver/e2e-test
           cat <<EOF > /etc/resolver/e2e-test
           domain tx.test
           nameserver ${{ env.INGRESS_IP }}
