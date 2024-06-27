@@ -11,10 +11,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v1
+        uses: actions/checkout@v4
 
       - name: Kubernetes KinD Cluster
         uses: container-tools/kind-action@0ad70e2299366b0e1552c7240f4e4567148f723e #v2.0.4
