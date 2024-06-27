@@ -36,7 +36,7 @@ jobs:
         run: |
           kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 
-      - name: Install NGINX Ingress Controller
+      - name: Describe Ingress Controller
         run: |
           kubectl describe svc/ingress-nginx-controller -n ingress-nginx
 
@@ -45,7 +45,12 @@ jobs:
           kubectl wait --namespace ingress-nginx \
             --for=condition=ready pod \
             --selector=app.kubernetes.io/component=controller \
-            --timeout=600s
+            --timeout=200s
+
+      - name: Get Ingress Controller Logs
+        if: always()
+        run: |
+          kubectl logs svc/ingress-nginx-controller -n ingress-nginx
 
       - name: Get Ingress Controller IP
         id: get_ingress_ip
