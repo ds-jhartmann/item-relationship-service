@@ -79,6 +79,7 @@ jobs:
       - name: Create Test Ingress Resource
         run: |
           kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/usage.yaml
+          kubectl describe pods
 
       - name: Ping ingress
         if: always()
