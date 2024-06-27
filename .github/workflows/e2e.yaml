@@ -43,6 +43,7 @@ jobs:
       - name: Get Pods
         run: |
           kubectl get pods -n ingress-nginx
+          kubectl describe pod ingress-nginx-controller -n ingress-nginx
 
       - name: Verify Ingress Controller installation
         run: |
