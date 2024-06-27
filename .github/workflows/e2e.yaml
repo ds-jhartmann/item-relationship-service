@@ -71,8 +71,8 @@ jobs:
 
       - name: Add .tx.test domain to /etc/hosts
         run: |
-          touch /etc/resolver/e2e-test
-          cat <<EOF > /etc/resolver/e2e-test
+          sudo touch /etc/resolver/e2e-test
+          sudo cat <<EOF > /etc/resolver/e2e-test
           domain tx.test
           nameserver ${{ env.INGRESS_IP }}
           search_order 1
