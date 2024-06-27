@@ -117,3 +117,4 @@ jobs:
         run: |
           kubectl get pods -n e2e-testing
           kubectl get ingresses -n e2e-testing
+          ping iatpmock.tx.test
