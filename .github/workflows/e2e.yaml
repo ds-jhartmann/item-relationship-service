@@ -69,16 +69,15 @@ jobs:
           INGRESS_IP=$(kubectl get svc --namespace ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
           echo "INGRESS_IP=$INGRESS_IP" >> $GITHUB_ENV
 
-      - name: Add .tx.test domain to /etc/hosts
-        run: |
-          sudo touch /etc/resolver/e2e-test
-          sudo cat <<EOF > /etc/resolver/e2e-test
-          domain tx.test
-          nameserver ${{ env.INGRESS_IP }}
-          search_order 1
-          timeout 5
-          EOF
-          
+#      - name: Add .tx.test domain to /etc/hosts
+#        run: |
+#          sudo touch /etc/resolver/e2e-test
+#          sudo cat <<EOF > /etc/resolver/e2e-test
+#          domain tx.test
+#          nameserver ${{ env.INGRESS_IP }}
+#          search_order 1
+#          timeout 5
+#          EOF
 
       - name: Checkout umbrella chart
         uses: actions/checkout@v4
