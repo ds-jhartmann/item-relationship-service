@@ -34,10 +34,7 @@ jobs:
 
       - name: Install NGINX Ingress Controller
         run: |
-          kubectl create namespace ingress-nginx
-          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-          helm repo update
-          helm install ingress-nginx ingress-nginx/ingress-nginx --namespace ingress-nginx
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
 
       - name: Verify Ingress Controller installation
         run: |
@@ -56,38 +53,16 @@ jobs:
         run: |
           echo "${{ env.INGRESS_IP }} example.tx.test" | sudo tee -a /etc/hosts
 
-      - name: Create Ingress Resource
+      - name: Create Test Ingress Resource
         run: |
-          cat <<EOF | kubectl apply -f -
-          apiVersion: networking.k8s.io/v1
-          kind: Ingress
-          metadata:
-            name: example-ingress
-            namespace: default
-            annotations:
-              nginx.ingress.kubernetes.io/rewrite-target: /
-          spec:
-            rules:
-            - host: example.tx.test
-              http:
-                paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                      name: example-service
-                      port:
-                        number: 80
-          EOF
-
-      - name: Verify Ingress Resource
-        run: |
-          kubectl wait --namespace default \
-            --for=condition=ready pod \
-            --selector=app=example-app \
-            --timeout=120s
+          kubectl apply -f https://kind.sigs.k8s.io/examples/ingress/usage.yaml
 
       - name: Ping ingress
         if: always()
         run: |
-          ping example.tx.test
+          # should output "foo-app"
+          curl localhost/foo/hostname
+          # should output "bar-app"
+          curl localhost/bar/hostname
+          
+          # ping example.tx.test
