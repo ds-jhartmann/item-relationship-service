@@ -73,7 +73,6 @@ jobs:
           kubectl get configmap coredns -n kube-system -o json | jq '.data.Corefile += "\n    tx.test:53 {\n        errors\n        cache 30\n        forward . ${{ env.INGRESS_IP }}\n    }\n"' | kubectl apply -f -
           kubectl describe configmap coredns -n kube-system
 
-
       - name: Checkout umbrella chart
         uses: actions/checkout@v4
         with:
@@ -118,4 +117,4 @@ jobs:
           kubectl logs svc/mock-util-service -n e2e-testing
           kubectl logs svc/umbrella-dataprovider-edc-controlplane -n e2e-testing
           kubectl get ingresses -n e2e-testing
-          ping iatpmock.tx.test
+          ping localhost/health
