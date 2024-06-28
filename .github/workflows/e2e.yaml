@@ -10,9 +10,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Kubernetes KinD Cluster
         uses: container-tools/kind-action@0ad70e2299366b0e1552c7240f4e4567148f723e #v2.0.4
         with:
@@ -34,50 +31,11 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Install NGINX Ingress Controller
-        run: |
-          kubectl apply -f .github/configs/deploy.yaml
-
-      - name: Describe Ingress Controller
-        run: |
-          kubectl describe svc/ingress-nginx-controller -n ingress-nginx
-
-      - name: Get Pods
-        run: |
-          kubectl get pods -n ingress-nginx
-          kubectl describe pod ingress-nginx-controller -n ingress-nginx
-
-      - name: Verify Ingress Controller installation
-        run: |
-          kubectl wait --namespace ingress-nginx \
-            --for=condition=ready pod \
-            --selector=app.kubernetes.io/component=controller \
-            --timeout=200s
-
-      - name: Get Ingress Controller Logs
-        if: always()
-        run: |
-          kubectl get pods -n ingress-nginx
-          kubectl logs svc/ingress-nginx-controller -n ingress-nginx
-
-      - name: Get Ingress Controller IP
-        id: get_ingress_ip
-        run: |
-          NODE_NAME=$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')
-          INGRESS_IP=$(kubectl get node $NODE_NAME -o json | jq -r '.status.addresses[] | select(.type=="InternalIP") | .address')
-          
-          echo "INGRESS_IP=$INGRESS_IP" >> $GITHUB_ENV
-
-      - name: Add to CubeDNS
-        run: |
-          kubectl get configmap coredns -n kube-system -o json | jq '.data.Corefile += "\n    tx.test:53 {\n        errors\n        cache 30\n        forward . ${{ env.INGRESS_IP }}\n    }\n"' | kubectl apply -f -
-          kubectl describe configmap coredns -n kube-system
-
       - name: Checkout umbrella chart
         uses: actions/checkout@v4
         with:
           repository: eclipse-tractusx/tractus-x-umbrella
-          ref: chore/edc-0.7.0-iam-mock
+          ref: chore/e2e-irs-preparation
 
       # Pull and build Jena Fuseki DB for semantic-hub
       - name: Pull Fuseki sources
@@ -104,7 +62,7 @@ jobs:
         run: |
           helm dependency update charts/tx-data-provider
           helm dependency update charts/umbrella
-          helm install umbrella charts/umbrella -f charts/values-test-data-exchange.yaml --timeout 5m \
+          helm install umbrella charts/umbrella -f charts/umbrella/values-adopter-irs.yaml --timeout 5m \
           --namespace e2e-testing --create-namespace --debug \
           --set semantic-hub.graphdb.image=kind-registry:5000/jena-fuseki-docker:4.7.0 \
           --set iatpmock.image.repository=kind-registry:5000/iatp-mock --set iatpmock.image.tag=testing
@@ -117,4 +75,30 @@ jobs:
           kubectl logs svc/mock-util-service -n e2e-testing
           kubectl logs svc/umbrella-dataprovider-edc-controlplane -n e2e-testing
           kubectl get ingresses -n e2e-testing
-          ping localhost/health
+
+      - name: Checkout IRS chart
+        uses: actions/checkout@v4
+
+      - name: Build IRS
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        with:
+          context: .
+          push: true
+          tags: kind-registry:5000/irs-api:testing
+
+      - name: Install Helm chart
+        run: |
+          helm install irs ./charts/item-relationship-service --namespace e2e-testing \
+          -f ./charts/item-relationship-service/values-umbrella.yaml 
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods --namespace e2e-testing
+
+      - name: Verify deployment
+        run: |
+          kubectl port-forward svc/irs-item-relationship-service 8080:8080 --namespace e2e-testing
+          curl --request GET \
+            --url http://localhost:8080/irs/aspectmodels \
+            --header 'Content-Type: application/json' \
+            --header 'X-API-KEY: password'
