@@ -68,7 +68,6 @@ jobs:
           INGRESS_IP=$(kubectl get node $NODE_NAME -o json | jq -r '.status.addresses[] | select(.type=="InternalIP") | .address')
           
           echo "INGRESS_IP=$INGRESS_IP" >> $GITHUB_ENV
-          ping $INGRESS_IP
 
 #      - name: Add .tx.test domain to /etc/hosts
 #        run: |
