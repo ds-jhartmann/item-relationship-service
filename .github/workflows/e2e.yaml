@@ -63,7 +63,9 @@ jobs:
       - name: Get Ingress Controller IP
         id: get_ingress_ip
         run: |
+          kubectl get nodes -o wide
           kubectl get svc --namespace ingress-nginx ingress-nginx-controller -o jsonpath='{.status}'
+          kubectl get node minikube -o jsonpath='{.status.addresses[*]}
           INGRESS_IP=$(kubectl get svc --namespace ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
           echo "INGRESS_IP=$INGRESS_IP" >> $GITHUB_ENV
           ping $INGRESS_IP
