@@ -65,6 +65,7 @@ jobs:
         run: |
           INGRESS_IP=$(kubectl get svc --namespace ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
           echo "INGRESS_IP=$INGRESS_IP" >> $GITHUB_ENV
+          ping $INGRESS_IP
 
 #      - name: Add .tx.test domain to /etc/hosts
 #        run: |
@@ -75,6 +76,10 @@ jobs:
 #          search_order 1
 #          timeout 5
 #          EOF
+
+      - name: Add to CubeDNS
+        run: |
+          kubectl get configmap coredns -n kube-system -o json | jq '.data.Corefile += "\n    tx.test:53 {\n        errors\n        cache 30\n        forward . ${{ env.INGRESS_IP }}\n    }\n"' | kubectl apply -f -
 
       - name: Checkout umbrella chart
         uses: actions/checkout@v4
