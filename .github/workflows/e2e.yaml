@@ -116,20 +116,19 @@ jobs:
         run: |
           kubectl get pods --namespace e2e-testing
 
-      - name: Verify deployment
+      - name: Wait for deployment
         run: |
           kubectl wait --for=condition=available deployment/irs-item-relationship-service --timeout=60s --namespace e2e-testing
           kubectl port-forward svc/irs-item-relationship-service 8080:8080 --namespace e2e-testing &
-          curl --request GET \
-            --url http://localhost:8080/irs/aspectmodels \
-            --header 'Content-Type: application/json' \
-            --header 'X-API-KEY: password'
 
       - name: Get Pods
         if: always()
         run: |
           kubectl get pods --namespace e2e-testing
           kubectl logs svc/irs-item-relationship-service -n e2e-testing
+          
+          curl --request GET --url http://localhost:8080/irs/aspectmodels \
+            --header 'Content-Type: application/json' --header 'X-API-KEY: password'
 
       - name: trigger integration test
         uses: ./.github/actions/cucumber-integration-test
