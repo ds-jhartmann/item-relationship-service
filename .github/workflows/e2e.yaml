@@ -110,7 +110,7 @@ jobs:
         run: |
           helm dependency update ./charts/item-relationship-service
           helm install irs ./charts/item-relationship-service --namespace e2e-testing \
-          -f ./charts/item-relationship-service/values-umbrella.yaml 
+          -f ./charts/item-relationship-service/values-umbrella.yaml
 
       - name: Get Pods
         run: |
@@ -124,6 +124,12 @@ jobs:
             --url http://localhost:8080/irs/aspectmodels \
             --header 'Content-Type: application/json' \
             --header 'X-API-KEY: password'
+
+      - name: Get Pods
+        if: always()
+        run: |
+          kubectl get pods --namespace e2e-testing
+          kubectl logs svc/irs-item-relationship-service -n e2e-testing
 
       - name: trigger integration test
         uses: ./.github/actions/cucumber-integration-test
