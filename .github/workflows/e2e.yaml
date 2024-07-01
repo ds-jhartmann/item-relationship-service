@@ -131,4 +131,4 @@ jobs:
           regularUserApiKey: "password"
           adminUserApiKey: "password"
           cucumberPublishToken: ${{ secrets.IRS_CUCUMBER_PUBLISH_TOKEN }}
-          executionFilter: "!Ignore & !INACTIVE & INTEGRATION_TEST & DEV"
+          executionFilter: "!Ignore & !INACTIVE & INTEGRATION_TEST & HELM"
