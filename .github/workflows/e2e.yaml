@@ -88,6 +88,7 @@ jobs:
 
       - name: Install Helm chart
         run: |
+          helm dependency update ./charts/item-relationship-service
           helm install irs ./charts/item-relationship-service --namespace e2e-testing \
           -f ./charts/item-relationship-service/values-umbrella.yaml 
 
