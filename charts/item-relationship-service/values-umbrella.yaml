@@ -37,7 +37,7 @@ discovery:
   discoveryFinderUrl: http://umbrella-discoveryfinder:8080/api/v1.0/administration/connectors/discovery/search
 
 semanticshub:
-  url: http://umbrella-discoveryfinder:8080/api/v1/models
+  url: http://umbrella-semantic-hub:8080/api/v1/models
   oAuthClientId: semantics
 
 minioUser: "minio"  # <minio-username>
@@ -59,7 +59,7 @@ edc:
 
 ess:
   edc:
-    host: http://umbrella-dataprovider-edc-controlplane:8081
+    host: http://umbrella-dataconsumer-1-edc-controlplane:8081
 
 minio:
   resources:
