@@ -109,10 +109,6 @@ edc:
     apikey:
       secret: "TEST1"
 
-ess:
-  edc:
-    host: http://umbrella-dataconsumer-1-edc-controlplane:8081
-
 minio:
   resources:
     limits:
