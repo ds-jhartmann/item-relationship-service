@@ -137,3 +137,13 @@ jobs:
           adminUserApiKey: "password"
           cucumberPublishToken: ${{ secrets.IRS_CUCUMBER_PUBLISH_TOKEN }}
           executionFilter: "!Ignore & !INACTIVE & INTEGRATION_TEST & HELM"
+
+      - name: Get IRS logs
+        run: |
+          kubectl logs svc/irs-item-relationship-service -n e2e-testing > irs_logs.txt
+
+      - name: Upload pod logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: irs_logs-logs
+          path: irs_logs.txt
