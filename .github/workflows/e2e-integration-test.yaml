@@ -27,8 +27,22 @@ on:
       - main
 
 jobs:
+  set-runner:
+    runs-on: ubuntu-latest
+    outputs:
+      runner: ${{ steps.set-runner.outputs.runner }}
+    steps:
+      - name: Determine runner
+        id: set-runner
+        run: |
+          if [[ "${{ github.repository }}" == "eclipse-tractusx/item-relaitonship-service" ]]; then
+            echo "runner=tractusx-runner" >> $GITHUB_ENV
+          else
+            echo "runner=ubuntu-latest" >> $GITHUB_ENV
+          fi
+
   execute-e2e-tests:
-    runs-on: [ tractusx-runner, ubuntu-latest ]
+    runs-on: ${{ env.runner }}
 
     steps:
       - name: Kubernetes KinD Cluster
