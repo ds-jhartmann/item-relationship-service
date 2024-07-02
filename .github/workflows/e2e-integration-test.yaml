@@ -42,7 +42,7 @@ jobs:
           fi
 
   execute-e2e-tests:
-    runs-on: ${{ env.runner }}
+    runs-on: ${{ needs.set-runner.outputs.runner }}
 
     steps:
       - name: Kubernetes KinD Cluster
