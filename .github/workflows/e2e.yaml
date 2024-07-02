@@ -64,7 +64,7 @@ jobs:
           unzip jena-fuseki.zip
 
       - name: Build and push Fuseki DB
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         with:
           context: jena-fuseki-docker-4.7.0
           push: true
@@ -98,6 +98,16 @@ jobs:
 
       - name: Checkout IRS chart
         uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
 
       - name: Build IRS
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
@@ -139,10 +149,12 @@ jobs:
           executionFilter: "!Ignore & !INACTIVE & INTEGRATION_TEST & HELM"
 
       - name: Get IRS logs
+        if: always()
         run: |
           kubectl logs svc/irs-item-relationship-service -n e2e-testing > irs_logs.txt
 
       - name: Upload pod logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: irs_logs-logs
