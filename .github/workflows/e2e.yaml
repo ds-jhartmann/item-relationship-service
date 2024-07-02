@@ -122,10 +122,6 @@ jobs:
           helm install irs ./charts/item-relationship-service --namespace e2e-testing \
           -f ./charts/item-relationship-service/values-umbrella.yaml
 
-      - name: Get Pods
-        run: |
-          kubectl get pods --namespace e2e-testing
-
       - name: Wait for deployment
         run: |
           kubectl wait --for=condition=available deployment/irs-item-relationship-service --timeout=60s --namespace e2e-testing
