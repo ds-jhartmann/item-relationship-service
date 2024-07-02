@@ -18,16 +18,17 @@
 #  SPDX-License-Identifier: Apache-2.0
 #
 ---
-name: Setup Kubernetes Cluster
+name: E2E Integration Tests
 
 on:
+  workflow_dispatch: # Trigger manually
   push:
     branches:
       - main
 
 jobs:
-  setup-kubernetes-cluster:
-    runs-on: ubuntu-latest
+  execute-e2e-tests:
+    runs-on: [ tractusx-runner, ubuntu-latest ]
 
     steps:
       - name: Kubernetes KinD Cluster
@@ -98,9 +99,6 @@ jobs:
 
       - name: Checkout IRS chart
         uses: actions/checkout@v4
-
-      # - name: Set up Docker Buildx
-      #   uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3.3.0
 
       - name: Cache maven packages
         uses: actions/cache@v4
