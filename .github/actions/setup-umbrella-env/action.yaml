@@ -117,6 +117,39 @@ runs:
         helm install irs ./charts/item-relationship-service --namespace e2e-testing \
         -f ./charts/item-relationship-service/values-umbrella.yaml
 
+
+
+    - name: Setup python
+      uses: actions/setup-python@v5
+      with:
+        python-version: 3.10.7
+        cache: 'pip'
+    - run: pip install -r local/testing/testdata/requirements.txt
+      shell: bash
+
+    - uses: azure/setup-kubectl@v3
+
+    - run: |
+        kubectl wait --for=condition=available deployment/umbrella-dataprovider-dtr --timeout=60s --namespace e2e-testing
+        kubectl wait --for=condition=available deployment/umbrella-dataprovider-edc-controlplane --timeout=60s --namespace e2e-testing
+        kubectl wait --for=condition=available deployment/umbrella-dataprovider-edc-dataplane --timeout=60s --namespace e2e-testing
+        kubectl wait --for=condition=available deployment/umbrella-dataprovider-submodelserver --timeout=60s --namespace e2e-testing
+        
+        kubectl port-forward svc/umbrella-dataprovider-dtr 4444:8080 --namespace e2e-testing &
+        kubectl port-forward svc/umbrella-dataprovider-edc-controlplane 8888:8081 --namespace e2e-testing &
+        kubectl port-forward svc/umbrella-dataprovider-submodelserver 9999:8080 --namespace e2e-testing &
+      shell: bash
+
+
+    - name: Setup test data
+      run: |
+        ./local/testing/testdata/upload-testdata.sh "TEST2" "BPNL00000003AYRE" \
+          "http://umbrella-dataprovider-submodelserver:8080" "http://localhost:9999" \
+          "http://umbrella-dataprovider-dtr:8080/api/v3" "http://localhost:4444/api/v3" \
+          "http://umbrella-dataprovider-edc-controlplane:8084" "http://localhost:8888" \
+          "http://umbrella-dataprovider-edc-dataplane:8081"
+      shell: bash
+
     - name: Wait for deployment
       id: deployment-ready
       shell: bash

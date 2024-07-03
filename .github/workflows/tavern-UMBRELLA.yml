@@ -17,6 +17,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: setup env
+        id: setup-env
         uses: ./.github/actions/setup-umbrella-env
 
       - name: Setup python
@@ -62,4 +63,5 @@ jobs:
             result.xml
 
       - name: setup env
+        if: always() && steps.setup-env.outcome == 'success'
         uses: ./.github/actions/umbrella-irs-logs

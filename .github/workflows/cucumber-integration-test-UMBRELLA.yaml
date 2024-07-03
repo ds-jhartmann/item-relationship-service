@@ -23,19 +23,21 @@ jobs:
   execute-e2e-tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: setup env
-      uses: ./.github/actions/setup-umbrella-env
+      - name: setup env
+        id: setup-env
+        uses: ./.github/actions/setup-umbrella-env
 
-    - name: trigger integration test
-      uses: ./.github/actions/cucumber-integration-test
-      with:
-        regularUserApiKey: "password"
-        adminUserApiKey: "password"
-        cucumberPublishToken: ${{ secrets.IRS_CUCUMBER_PUBLISH_TOKEN }}
-        executionFilter: "!Ignore & !INACTIVE & INTEGRATION_TEST & HELM"
+      - name: trigger integration test
+        uses: ./.github/actions/cucumber-integration-test
+        with:
+          regularUserApiKey: "password"
+          adminUserApiKey: "password"
+          cucumberPublishToken: ${{ secrets.IRS_CUCUMBER_PUBLISH_TOKEN }}
+          executionFilter: "!Ignore & !INACTIVE & INTEGRATION_TEST & HELM"
 
-    - name: setup env
-      uses: ./.github/actions/umbrella-irs-logs
+      - name: attach logs
+        if: always() && steps.setup-env.outcome == 'success'
+        uses: ./.github/actions/umbrella-irs-logs
 
