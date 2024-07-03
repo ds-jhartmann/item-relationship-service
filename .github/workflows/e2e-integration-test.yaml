@@ -84,8 +84,8 @@ jobs:
           helm dependency update charts/umbrella
           helm install umbrella charts/umbrella -f charts/umbrella/values-adopter-irs.yaml --timeout 5m \
           --namespace e2e-testing --create-namespace --debug \
-#          --set semantic-hub.graphdb.image=kind-registry:5000/jena-fuseki-docker:4.7.0 \
           --set iatpmock.image.repository=kind-registry:5000/iatp-mock --set iatpmock.image.tag=testing
+#          --set semantic-hub.graphdb.image=kind-registry:5000/jena-fuseki-docker:4.7.0 \
 
       - name: Verify installation
         if: always()
