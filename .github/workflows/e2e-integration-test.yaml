@@ -22,9 +22,9 @@ name: E2E Integration Tests
 
 on:
   workflow_dispatch: # Trigger manually
-  push:
-    branches:
-      - main
+#  push:
+#    branches:
+#      - main
 
 jobs:
   execute-e2e-tests:
