@@ -57,19 +57,19 @@ jobs:
           repository: eclipse-tractusx/tractus-x-umbrella
           ref: chore/e2e-irs-preparation
 
-      # Pull and build Jena Fuseki DB for semantic-hub
-      - name: Pull Fuseki sources
-        run: |
-          curl https://repo1.maven.org/maven2/org/apache/jena/jena-fuseki-docker/4.7.0/jena-fuseki-docker-4.7.0.zip > ./jena-fuseki.zip
-          unzip jena-fuseki.zip
-
-      - name: Build and push Fuseki DB
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
-        with:
-          context: jena-fuseki-docker-4.7.0
-          push: true
-          tags: kind-registry:5000/jena-fuseki-docker:4.7.0
-          build-args: JENA_VERSION=4.7.0
+#      # Pull and build Jena Fuseki DB for semantic-hub
+#      - name: Pull Fuseki sources
+#        run: |
+#          curl https://repo1.maven.org/maven2/org/apache/jena/jena-fuseki-docker/4.7.0/jena-fuseki-docker-4.7.0.zip > ./jena-fuseki.zip
+#          unzip jena-fuseki.zip
+#
+#      - name: Build and push Fuseki DB
+#        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+#        with:
+#          context: jena-fuseki-docker-4.7.0
+#          push: true
+#          tags: kind-registry:5000/jena-fuseki-docker:4.7.0
+#          build-args: JENA_VERSION=4.7.0
 
       - name: Build iatp mock
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
@@ -84,7 +84,7 @@ jobs:
           helm dependency update charts/umbrella
           helm install umbrella charts/umbrella -f charts/umbrella/values-adopter-irs.yaml --timeout 5m \
           --namespace e2e-testing --create-namespace --debug \
-          --set semantic-hub.graphdb.image=kind-registry:5000/jena-fuseki-docker:4.7.0 \
+#          --set semantic-hub.graphdb.image=kind-registry:5000/jena-fuseki-docker:4.7.0 \
           --set iatpmock.image.repository=kind-registry:5000/iatp-mock --set iatpmock.image.tag=testing
 
       - name: Verify installation
@@ -120,12 +120,13 @@ jobs:
           -f ./charts/item-relationship-service/values-umbrella.yaml
 
       - name: Wait for deployment
+        id: deployment-ready
         run: |
           kubectl wait --for=condition=available deployment/irs-item-relationship-service --timeout=60s --namespace e2e-testing
           kubectl port-forward svc/irs-item-relationship-service 8080:8080 --namespace e2e-testing &
 
       - name: Get Pods
-        if: always()
+        if: always() && steps.deployment-ready.outcome == 'success'
         run: |
           kubectl get pods --namespace e2e-testing
           kubectl logs svc/irs-item-relationship-service -n e2e-testing
@@ -142,12 +143,13 @@ jobs:
           executionFilter: "!Ignore & !INACTIVE & INTEGRATION_TEST & HELM"
 
       - name: Get IRS logs
-        if: always()
+        if: always() && steps.deployment-ready.outcome == 'success'
+        id: irs-logs
         run: |
           kubectl logs svc/irs-item-relationship-service -n e2e-testing > irs_logs.txt
 
       - name: Upload pod logs
-        if: always()
+        if: always() && steps.irs-logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: irs_logs-logs

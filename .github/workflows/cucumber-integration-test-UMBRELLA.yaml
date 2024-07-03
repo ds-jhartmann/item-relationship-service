@@ -1,0 +1,30 @@
+name: IRS DIL Cucumber Integration test execution
+
+on:
+  workflow_dispatch: # Trigger manually
+  push:
+    branches:
+      - 'main'
+# Cancel previous Test executions if a new one is triggered.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  execute-e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: setup env
+      uses: ./.github/actions/setup-umbrella-env
+
+    - name: trigger integration test
+      uses: ./.github/actions/cucumber-integration-test
+      with:
+        regularUserApiKey: "password"
+        adminUserApiKey: "password"
+        cucumberPublishToken: ${{ secrets.IRS_CUCUMBER_PUBLISH_TOKEN }}
+        executionFilter: "!Ignore & !INACTIVE & INTEGRATION_TEST & HELM"
+
+    - name: setup env
+      uses: ./.github/actions/umbrella-irs-logs
+
