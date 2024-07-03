@@ -23,6 +23,8 @@ description: "Retrieves the IRS logs and uploads them as artifact"
 runs:
   using: composite
   steps:
+    - uses: azure/setup-kubectl@v3
+
     - name: Wait for deployment
       id: deployment-ready
       shell: bash
