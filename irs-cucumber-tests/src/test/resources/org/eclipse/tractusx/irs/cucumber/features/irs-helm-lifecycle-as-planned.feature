@@ -17,13 +17,46 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+@TRI-512
 Feature: BomLifecycle 'asPlanned' implementation
 
   Background:
     Given the IRS URL "http://localhost:8080"
     And the admin user api key
 
+
   @HELM @INTEGRATION_TEST
+  @TRI-893 @TRI-1941 @TRI-1942 @TRI-873 @TRI-1843 @TRI-1770
+  Scenario: End 2 End for BomLifecycle 'asPlanned' Vehicle Model C for SAP [BPNL00000003AZQP]
+    Given I register an IRS job for globalAssetId "urn:uuid:65e1554e-e5cd-4560-bac1-1352582122fb" and BPN "BPNL00000003AZQP"
+    And collectAspects "true"
+    And depth 10
+    And direction "downward"
+    And bomLifecycle "asPlanned"
+    And aspects :
+      | urn:samm:io.catenax.part_as_planned:2.0.0#PartAsPlanned |
+    When I get the job-id
+    Then I check, if the job has status "COMPLETED" within 20 minutes
+    And I check, if "relationships" are equal to "TRI-893-expected-relationships.json"
+    And I check, if "submodels" are equal to "TRI-893-expected-submodels.json"
+
+  @HELM @INTEGRATION_TEST
+  @TRI-891 @TRI-1941 @TRI-1942 @TRI-873 @TRI-1843 @TRI-1770
+  Scenario: End 2 End for BomLifecycle 'asPlanned' Vehicle Model B for MercedesBenz [BPNL00000003AVTH]
+    Given I register an IRS job for globalAssetId "urn:uuid:68904173-ad59-4a77-8412-3e73fcafbd8b" and BPN "BPNL00000003AVTH"
+    And collectAspects "true"
+    And depth 10
+    And direction "downward"
+    And bomLifecycle "asPlanned"
+    And aspects :
+      | urn:samm:io.catenax.part_as_planned:2.0.0#PartAsPlanned |
+    When I get the job-id
+    Then I check, if the job has status "COMPLETED" within 20 minutes
+    And I check, if "relationships" are equal to "TRI-891-expected-relationships.json"
+    And I check, if "submodels" are equal to "TRI-891-expected-submodels.json"
+
+  @HELM @INTEGRATION_TEST
+  @TRI-821 @TRI-1941 @TRI-1942 @TRI-873 @TRI-1843 @TRI-1770
   Scenario: End 2 End for BomLifecycle 'asPlanned' Vehicle Model A for BMW [BPNL00000003AYRE]
     Given I register an IRS job for globalAssetId "urn:uuid:0733946c-59c6-41ae-9570-cb43a6e4c79e" and BPN "BPNL00000003AYRE"
     And collectAspects "true"

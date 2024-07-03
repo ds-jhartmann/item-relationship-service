@@ -24,7 +24,7 @@ SCRIPT_PATH="local/testing/testdata/transform-and-upload.py"
 
 API_KEY=$1
 PROVIDER_BPN=$2
-ALLOWED_BPN=$2
+ALLOWED_BPN=$PROVIDER_BPN
 
 SUBMODEL_URL=$3
 SUBMODEL_UPLOAD_URL=$4
@@ -42,19 +42,19 @@ upload_data() {
     local filePath="$1"
     local policyId="$2"
 
-    python $SCRIPT_PATH \
+    python "$SCRIPT_PATH" \
         -f "$filePath" \
-        -s $SUBMODEL_URL \
-        -su $SUBMODEL_UPLOAD_URL \
-        -a $DTR_URL \
-        -au $DTR_UPLOAD_URL \
-        -edc $EDC_CONTROLPLANE_URL \
-        -eu $EDC_UPLOAD_URL \
-        --edcBPN $PROVIDER_BPN \
-        -d $EDC_DATAPLANE_URL \
-        -k $API_KEY \
+        -s "$SUBMODEL_URL" \
+        -su "$SUBMODEL_UPLOAD_URL" \
+        -a "$DTR_URL" \
+        -au "$DTR_UPLOAD_URL" \
+        -edc "$EDC_CONTROLPLANE_URL" \
+        -eu "$EDC_UPLOAD_URL" \
+        --edcBPN "$PROVIDER_BPN" \
+        -d "$EDC_DATAPLANE_URL" \
+        -k "$API_KEY" \
         -p "$policyId" \
-        --allowedBPNs $ALLOWED_BPN \
+        --allowedBPNs "$ALLOWED_BPN" \
         --aas3
 }
 
