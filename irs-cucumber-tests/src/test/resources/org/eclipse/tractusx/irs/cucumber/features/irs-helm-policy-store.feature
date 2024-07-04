@@ -23,7 +23,7 @@ Feature: IRS Policy Store
     Given the IRS URL "http://localhost:8080" -- policystore
     And the admin user api key -- policystore
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-2005 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Delete policy for BPN
@@ -66,7 +66,7 @@ Feature: IRS Policy Store
       | BPNL1234567890CD | aaaaaaaa-aaaa-aaaa-aaaa-555555555555 |
       | BPNL1234567890CD | aaaaaaaa-aaaa-aaaa-aaaa-666666666666 |
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-2004 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Trying to register a policy without payload should fail (bad case)
@@ -82,7 +82,7 @@ Feature: IRS Policy Store
     Then the create policy response should have HTTP status 400
     And the create policy response should have message containing "does not contain all required fields"
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1996 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Try to update policy with invalid policyId (bad case)
@@ -94,7 +94,7 @@ Feature: IRS Policy Store
     Then the update policy response should have HTTP status 400
     And the update policy response should have message containing "must only contain safe URL path variable characters"
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1995 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Try to delete policy with invalid policyId (bad case)
@@ -105,7 +105,7 @@ Feature: IRS Policy Store
     When I delete the policy "#INVALID-POLICY-ID#"
     Then the delete policy response should have HTTP status 400
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1993 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Registering a duplicate policy for same BPNL fails (bad case)
@@ -119,7 +119,7 @@ Feature: IRS Policy Store
     Then the create policy response should have HTTP status 400
     And the create policy response should have message containing "already exists"
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1988 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Try to register policy with invalid policyId (bad case)
@@ -130,7 +130,7 @@ Feature: IRS Policy Store
     When a policy with policyId "#INVALID-POLICY-ID#" is registered for BPN "BPNL1234567890AB" and validUntil "3333-11-11T11:11:11.111Z"
     Then the create policy response should have HTTP status 400
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1984 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Updating policy for invalid BPNL (bad case)
@@ -154,7 +154,7 @@ Feature: IRS Policy Store
     When I update policy "aaaaaaaa-aaaa-aaaa-aaaa-333333333333", BPN "DELETE * FROM Table", validUntil "3333-11-11T11:11:11.111Z"
     Then the update policy response should have HTTP status 400
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1981 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Registering policy for invalid BPNL (bad case)
@@ -177,7 +177,7 @@ Feature: IRS Policy Store
     When a policy with policyId "aaaaaaaa-aaaa-aaaa-aaaa-333333333333" is registered for BPN "DELETE * FROM Table" and validUntil "3333-11-11T11:11:11.111Z"
     Then the create policy response should have HTTP status 400
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1966 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Fetching policies by BPNLs should fail for invalid BPNLs (bad case)
@@ -212,7 +212,7 @@ Feature: IRS Policy Store
       | DELETE * FROM Table |
     Then the fetch policies for BPN response should have HTTP status 400
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1965 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Register policy without validUntil (bad case)
@@ -228,7 +228,7 @@ Feature: IRS Policy Store
 		# assert
     Then the create policy response should have HTTP status 400
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1955 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Delete some policies
@@ -286,7 +286,7 @@ Feature: IRS Policy Store
       | BPNL1234567890AB | aaaaaaaa-aaaa-aaaa-aaaa-333333333333 |
       | BPNL1234567890EF | aaaaaaaa-aaaa-aaaa-aaaa-333333333333 |
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1954 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Add policyId to given BPNs
@@ -318,7 +318,7 @@ Feature: IRS Policy Store
       | BPNL1234567890AB | aaaaaaaa-aaaa-aaaa-aaaa-333333333333 |
       | BPNL1234567890CD | aaaaaaaa-aaaa-aaaa-aaaa-333333333333 |
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1953 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Add BPN to policy
@@ -341,7 +341,7 @@ Feature: IRS Policy Store
     And the BPN "BPNL1234567890CD" should have a policy with policyId "aaaaaaaa-aaaa-aaaa-aaaa-33333333333" and validUntil "3334-11-11T11:11:11.111Z"
     And the BPN "BPNL1234567890AB" should have 0 policies having policyId starting with "aaaaaaaa-aaaa-aaaa-aaaa-"
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1952 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API:  Update a policy validUntil date for a policy that is associated to multiple BPNs
@@ -392,7 +392,7 @@ Feature: IRS Policy Store
     And the BPN "BPNL1234567890CD" should have a policy with policyId "aaaaaaaa-aaaa-aaaa-aaaa-555555555555" and validUntil "5555-11-11T11:11:11.111Z"
     And the BPN "BPNL1234567890CD" should have a policy with policyId "aaaaaaaa-aaaa-aaaa-aaaa-666666666666" and validUntil "6666-11-11T11:11:11.111Z"
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1951 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Update a policy validUntil date
@@ -409,7 +409,7 @@ Feature: IRS Policy Store
     When I successfully fetch all policies
     Then the BPN "BPNL1234567890AB" should have a policy with policyId "aaaaaaaa-aaaa-aaaa-aaaa-33333333333" and validUntil "3334-11-11T11:11:11.111Z"
 
-  @DEV @INTEGRATION_TEST
+  @HELM @INTEGRATION_TEST
   @POLICY_STORE_API
   @TRI-1950 @TRI-1843 @TRI-1941 @TRI-873
   Scenario: Policy Store API: Register policies
