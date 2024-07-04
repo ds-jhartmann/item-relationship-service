@@ -42,8 +42,8 @@ Feature: BomLifecycle 'asPlanned' implementation
 
   @HELM @INTEGRATION_TEST
   @TRI-891 @TRI-1941 @TRI-1942 @TRI-873 @TRI-1843 @TRI-1770
-  Scenario: End 2 End for BomLifecycle 'asPlanned' Vehicle Model B for MercedesBenz [BPNL00000003AVTH]
-    Given I register an IRS job for globalAssetId "urn:uuid:68904173-ad59-4a77-8412-3e73fcafbd8b" and BPN "BPNL00000003AVTH"
+  Scenario: End 2 End for BomLifecycle 'asPlanned' Vehicle Model B for MercedesBenz [BPNL00000003AZQP]
+    Given I register an IRS job for globalAssetId "urn:uuid:68904173-ad59-4a77-8412-3e73fcafbd8b" and BPN "BPNL00000003AZQP"
     And collectAspects "true"
     And depth 10
     And direction "downward"
