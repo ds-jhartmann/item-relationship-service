@@ -98,4 +98,4 @@ Feature: SingleLevelUsageAsBuilt
     And I check, if "summary" contains 5 completed and 0 failed items
     And I check, if "relationships" are equal to "TRI-704-expected-relationships.json"
     And I check, if "submodels" are equal to "TRI-704-expected-submodels.json"
-    And I check, if submodels contains BPNL number "BPNL00000003AYRE" exactly 1 times
+    And I check, if submodels contains BPNL number "BPNL00000003AYRE" exactly 7 times
