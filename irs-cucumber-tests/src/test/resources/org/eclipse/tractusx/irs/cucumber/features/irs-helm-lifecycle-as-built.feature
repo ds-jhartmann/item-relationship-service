@@ -78,7 +78,7 @@ Feature: SingleLevelUsageAsBuilt
     And I check, if "summary" contains 175 completed and 1 failed items
     And I check, if "relationships" are equal to "TRI-767-expected-relationships.json"
     And I check, if "submodels" are equal to "TRI-767-expected-submodels.json"
-    And I check, if submodels contains BPNL number "BPNL00000003AYRE" exactly 37 times
+    And I check, if submodels contains BPNL number "BPNL00000003AYRE" exactly 248 times
 
   @HELM @INTEGRATION_TEST
   @TRI-704 @TRI-1941 @TRI-1942 @TRI-873 @TRI-1843 @TRI-1770 @TRI-1682
