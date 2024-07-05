@@ -63,6 +63,7 @@ jobs:
             result.xml
 
       - name: Run ESS tests
+        if: always() && steps.setup-env.outcome == 'success'
         env:
           IRS_HOST: 'http://localhost:8080'
           IRS_ESS_HOST: 'http://localhost:8080'
