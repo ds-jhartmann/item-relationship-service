@@ -151,7 +151,10 @@ jobs:
           title: "chore: updated docs and Helm chart for release"
           body: This PR prepares the docs and the Helm chart for IRS release ${{ inputs.irs-version }}.
             Please check whether everything was updated correctly. Once this PR is merged, you can draft a new release.
-            Releasenotes
+            Releasenotes  
+            
             ```
+          
             ${{ env.CHANGELOG }}
+
             ```
