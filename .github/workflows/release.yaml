@@ -47,7 +47,7 @@ jobs:
       - name: Validate that IRS and Helm Chart versions don't exist yet
         run: |
           # IRS version can be checked via git tag since every release has a tag
-          matched_irs_version=$(git tag | grep -Eo "${{ inputs.irs-version }}" || echo "")
+          matched_irs_version=$(git tag | grep -Eo "^${{ inputs.irs-version }}" || echo "")
           # extract from Helm Chart changelog
           matched_helm_chart_version=$(grep -Eo "## \[${{ inputs.helm-chart-version }}\]" ${{ env.HELM_CHART_PATH }}/CHANGELOG.md || echo "")
           
