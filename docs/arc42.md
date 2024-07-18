@@ -955,6 +955,7 @@ This behavior is shown in the table below.
 | Category | Action | Endpoint | view_irs | admin_irs |
 | Policy Store | Add policy | POST /irs/policies |  | x |
 |  | Get policies | GET /irs/policies |  | x |
+|  | Find policies (paged) | GET /irs/policies/paged |  | x |
 |  | Update policy | PUT /irs/policies/{policyId} |  | x |
 |  | Delete policy | DELETE /irs/policies/{policyId} |  | x |
 | Aspect models | Get aspect models | GET /irs/aspectmodels | x | x |
@@ -1396,9 +1397,9 @@ The quality scenarios in this section depict the fundamental quality goals as we
 This work is licensed under the [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
 * SPDX-License-Identifier: Apache-2.0
-* SPDX-FileCopyrightText: 2021, 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+* SPDX-FileCopyrightText: 2021, 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
 * SPDX-FileCopyrightText: 2022, 2023 BOSCH AG
 * SPDX-FileCopyrightText: 2021, 2022 ZF Friedrichshafen AG
 * SPDX-FileCopyrightText: 2022  ISTOS GmbH
-* SPDX-FileCopyrightText: 2021, 2023 Contributors to the Eclipse Foundation
+* SPDX-FileCopyrightText: 2021, 2024 Contributors to the Eclipse Foundation
 * Source URL: <https://github.com/eclipse-tractusx/item-relationship-service>
