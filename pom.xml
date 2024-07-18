@@ -5,7 +5,7 @@
 
     <groupId>org.eclipse.tractusx.irs</groupId>
     <artifactId>item-relationship-service-root</artifactId>
-    <version>${revision}</version>
+    <version>0.0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Item Relationship Service</name>
@@ -80,7 +80,7 @@
         <!-- Dependencies -->
         <springboot.version>3.1.12</springboot.version>
         <springdoc.version>2.2.0</springdoc.version>
-        <micrometer.version>1.11.4</micrometer.version>
+        <micrometer.version>1.13.2</micrometer.version>
         <datafaker.version>1.9.0</datafaker.version>
         <json-unit-assertj.version>3.2.7</json-unit-assertj.version>
         <gatling.version>3.9.5</gatling.version>
