@@ -134,6 +134,12 @@ runs:
           "http://umbrella-dataprovider-edc-dataplane:8081"
       shell: bash
 
+    - name: Verify installation
+      if: always()
+      shell: bash
+      run: |
+        kubectl logs svc/umbrella-dataprovider-edc-controlplane -n e2e-testing
+
     - name: Wait for deployment
       id: deployment-ready
       shell: bash
