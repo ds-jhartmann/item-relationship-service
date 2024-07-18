@@ -112,10 +112,11 @@ runs:
     - uses: azure/setup-kubectl@v3
 
     - run: |
-        kubectl wait --for=condition=available deployment/umbrella-dataprovider-dtr --timeout=60s --namespace e2e-testing
-        kubectl wait --for=condition=available deployment/umbrella-dataprovider-edc-controlplane --timeout=60s --namespace e2e-testing
-        kubectl wait --for=condition=available deployment/umbrella-dataprovider-edc-dataplane --timeout=60s --namespace e2e-testing
-        kubectl wait --for=condition=available deployment/umbrella-dataprovider-submodelserver --timeout=60s --namespace e2e-testing
+        kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=umbrella-controlplane --timeout=120s -n e2e-testing
+        kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=umbrella-dataplane --timeout=120s -n e2e-testing
+        kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=umbrella --timeout=120s -n e2e-testing
+        
+        kubectl get pods -n e2e-testing
         
         kubectl port-forward svc/umbrella-dataprovider-dtr 4444:8080 --namespace e2e-testing &
         kubectl port-forward svc/umbrella-dataprovider-edc-controlplane 8888:8081 --namespace e2e-testing &
