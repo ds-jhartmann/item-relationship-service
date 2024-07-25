@@ -5,7 +5,7 @@
 
     <groupId>org.eclipse.tractusx.irs</groupId>
     <artifactId>item-relationship-service-root</artifactId>
-    <version>${revision}</version>
+    <version>0.0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Item Relationship Service</name>
