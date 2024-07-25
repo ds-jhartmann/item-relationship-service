@@ -23,12 +23,12 @@
  ********************************************************************************/
 package org.eclipse.tractusx.irs.policystore.services;
 
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.eclipse.tractusx.irs.common.persistence.BlobPersistence.DEFAULT_BLOB_NAME;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,21 +38,18 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import jakarta.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.tractusx.irs.data.StringMapper;
 import org.eclipse.tractusx.irs.edc.client.policy.AcceptedPoliciesProvider;
 import org.eclipse.tractusx.irs.edc.client.policy.AcceptedPolicy;
-import org.eclipse.tractusx.irs.edc.client.policy.Constraint;
-import org.eclipse.tractusx.irs.edc.client.policy.Constraints;
-import org.eclipse.tractusx.irs.edc.client.policy.Operator;
-import org.eclipse.tractusx.irs.edc.client.policy.OperatorType;
-import org.eclipse.tractusx.irs.edc.client.policy.Permission;
 import org.eclipse.tractusx.irs.edc.client.policy.Policy;
-import org.eclipse.tractusx.irs.edc.client.policy.PolicyType;
 import org.eclipse.tractusx.irs.edc.client.transformer.EdcTransformer;
 import org.eclipse.tractusx.irs.policystore.config.DefaultAcceptedPoliciesConfig;
 import org.eclipse.tractusx.irs.policystore.exceptions.PolicyStoreException;
+import org.eclipse.tractusx.irs.policystore.exceptions.ResourceDoesNotExistException;
 import org.eclipse.tractusx.irs.policystore.models.CreatePolicyRequest;
 import org.eclipse.tractusx.irs.policystore.models.UpdatePolicyRequest;
 import org.eclipse.tractusx.irs.policystore.persistence.PolicyPersistence;
@@ -67,9 +64,13 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 @Slf4j
 @SuppressWarnings({ "PMD.ExcessiveImports",
-                    "PMD.TooManyMethods"
+                    "PMD.TooManyMethods",
+                    "PMD.GodClass"
 })
 public class PolicyStoreService implements AcceptedPoliciesProvider {
+
+    private static final TypeReference<List<Policy>> LIST_OF_POLICIES_TYPE = new TypeReference<>() {
+    };
 
     private final List<Policy> allowedPoliciesFromConfig;
 
@@ -79,22 +80,10 @@ public class PolicyStoreService implements AcceptedPoliciesProvider {
 
     private final Clock clock;
 
-    private static final String DEFAULT = "default";
-
     /**
-     * Constants for the configured default policy.
+     * Under this "virtual" BPN custom default policies are stored
      */
-    private static final class ConfiguredDefaultPolicy {
-        /**
-         * ID for default policy (see TRI-1594)
-         */
-        public static final String DEFAULT_POLICY_ID = "default-policy";
-
-        /**
-         * Lifetime for default policy in years (see TRI-1594)
-         */
-        public static final int DEFAULT_POLICY_LIFETIME_YEARS = 5;
-    }
+    /* package */ static final String BPN_DEFAULT = "default";
 
     public PolicyStoreService(final DefaultAcceptedPoliciesConfig defaultAcceptedPoliciesConfig,
             final PolicyPersistence persistence, final EdcTransformer edcTransformer, final Clock clock) {
@@ -120,8 +109,10 @@ public class PolicyStoreService implements AcceptedPoliciesProvider {
         final Policy policy = edcTransformer.transformToIrsPolicy(policyJson);
         policy.setValidUntil(request.validUntil());
 
+        handleTrialToModifyFallbackPolicy(policy.getPolicyId());
+
         registeredPolicy = doRegisterPolicy(policy,
-                request.businessPartnerNumber() == null ? DEFAULT : request.businessPartnerNumber());
+                request.businessPartnerNumber() == null ? BPN_DEFAULT : request.businessPartnerNumber());
 
         return registeredPolicy;
     }
@@ -154,10 +145,10 @@ public class PolicyStoreService implements AcceptedPoliciesProvider {
         }
     }
 
-    public List<Policy> getStoredPolicies(final List<String> bpnls) {
-        log.info("Reading all stored polices for BPN {}", bpnls);
+    public List<Policy> getStoredPolicies(final List<String> businessPartnerNumbers) {
+        log.info("Reading all stored polices for BPN {}", businessPartnerNumbers);
         final List<Policy> storedPolicies = new LinkedList<>();
-        for (final String bpn : bpnls) {
+        for (final String bpn : businessPartnerNumbers) {
             storedPolicies.addAll(persistence.readAll(bpn));
         }
 
@@ -182,16 +173,18 @@ public class PolicyStoreService implements AcceptedPoliciesProvider {
     public Map<String, List<Policy>> getAllStoredPolicies() {
         final Map<String, List<Policy>> bpnToPolicies = persistence.readAll();
         if (containsNoDefaultPolicy(bpnToPolicies)) {
-            bpnToPolicies.put(DEFAULT, allowedPoliciesFromConfig);
+            bpnToPolicies.put(BPN_DEFAULT, allowedPoliciesFromConfig);
         }
         return bpnToPolicies;
     }
 
     private static boolean containsNoDefaultPolicy(final Map<String, List<Policy>> bpnToPolicies) {
-        return bpnToPolicies.keySet().stream().noneMatch(key -> StringUtils.isEmpty(key) || DEFAULT.equals(key));
+        return bpnToPolicies.keySet().stream().noneMatch(key -> StringUtils.isEmpty(key) || BPN_DEFAULT.equals(key));
     }
 
     public void deletePolicy(final String policyId) {
+
+        handleTrialToModifyFallbackPolicy(policyId);
 
         log.info("Getting all policies to find correct BPN");
         final List<String> bpnsContainingPolicyId = PolicyHelper.findBpnsByPolicyId(getAllStoredPolicies(), policyId);
@@ -199,13 +192,12 @@ public class PolicyStoreService implements AcceptedPoliciesProvider {
         if (bpnsContainingPolicyId.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "Policy with id '%s' not found".formatted(policyId));
-        } else if (bpnsContainingPolicyId.stream().noneMatch(StringUtils::isNotEmpty)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A configured default policy cannot be deleted. "
-                    + "It can be overridden by defining a default policy via the API instead.");
         } else {
             try {
                 log.info("Deleting policy with id {}", policyId);
                 bpnsContainingPolicyId.forEach(bpn -> persistence.delete(bpn, policyId));
+            } catch (final ResourceDoesNotExistException e) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
             } catch (final PolicyStoreException e) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
             }
@@ -213,24 +205,35 @@ public class PolicyStoreService implements AcceptedPoliciesProvider {
     }
 
     public void deletePolicyForEachBpn(final String policyId, final List<String> bpnList) {
+
+        handleTrialToModifyFallbackPolicy(policyId);
+
         try {
             for (final String bpn : bpnList) {
                 persistence.delete(bpn, policyId);
             }
+        } catch (final ResourceDoesNotExistException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
         } catch (final PolicyStoreException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
         }
     }
 
+    private boolean isFallbackPolicyFromConfiguration(final String policyId) {
+        return this.allowedPoliciesFromConfig.stream().map(Policy::getPolicyId).anyMatch(p -> p.equals(policyId));
+    }
+
     public void updatePolicies(final UpdatePolicyRequest request) {
         for (final String policyId : request.policyIds()) {
             updatePolicy(policyId, request.validUntil(),
-                    request.businessPartnerNumbers() == null ? List.of(DEFAULT) : request.businessPartnerNumbers());
+                    request.businessPartnerNumbers() == null ? List.of(BPN_DEFAULT) : request.businessPartnerNumbers());
         }
     }
 
     public void updatePolicy(final String policyId, final OffsetDateTime newValidUntil,
             final List<String> newBusinessPartnerNumbers) {
+
+        handleTrialToModifyFallbackPolicy(policyId);
 
         log.info("Updating policy with id {}", policyId);
 
@@ -279,12 +282,27 @@ public class PolicyStoreService implements AcceptedPoliciesProvider {
     public List<AcceptedPolicy> getAcceptedPolicies(final String bpn) {
 
         if (bpn == null) {
-            return getConfiguredDefaultPolicies();
+            return getCustomPolicyOrFallback();
         }
 
         final List<Policy> storedPolicies = getStoredPolicies(List.of(bpn));
         final Stream<Policy> result = sortByPolicyId(storedPolicies);
         return result.map(this::toAcceptedPolicy).toList();
+    }
+
+    /**
+     * Gets either the custom default policies from the database
+     * or the fallback default policies from the configuration.
+     *
+     * @return list of default policies
+     */
+    private List<AcceptedPolicy> getCustomPolicyOrFallback() {
+        final List<Policy> defaultPoliciesFromDb = getAllStoredPolicies().get(BPN_DEFAULT);
+        if (isNotEmpty(defaultPoliciesFromDb)) {
+            return defaultPoliciesFromDb.stream().map(this::toAcceptedPolicy).toList();
+        } else {
+            return getConfiguredDefaultPolicies();
+        }
     }
 
     private static Stream<Policy> sortByPolicyId(final List<Policy> policies) {
@@ -297,26 +315,18 @@ public class PolicyStoreService implements AcceptedPoliciesProvider {
         return new AcceptedPolicy(policy, policy.getValidUntil());
     }
 
-    private List<Policy> createDefaultPolicyFromConfig(
-            final DefaultAcceptedPoliciesConfig defaultAcceptedPoliciesConfig) {
+    private List<Policy> createDefaultPolicyFromConfig(final DefaultAcceptedPoliciesConfig defaultPoliciesConfig) {
+        return StringMapper.mapFromBase64String(defaultPoliciesConfig.getAcceptedPolicies(), LIST_OF_POLICIES_TYPE);
+    }
 
-        final List<Constraint> constraints = new ArrayList<>();
-        defaultAcceptedPoliciesConfig.getAcceptedPolicies()
-                                     .forEach(acceptedPolicy -> constraints.add(
-                                             new Constraint(acceptedPolicy.getLeftOperand(),
-                                                     new Operator(OperatorType.fromValue(acceptedPolicy.getOperator())),
-                                                     acceptedPolicy.getRightOperand())));
-
-        final OffsetDateTime now = OffsetDateTime.now(clock);
-        return List.of(Policy.builder()
-                             .policyId(ConfiguredDefaultPolicy.DEFAULT_POLICY_ID)
-                             .createdOn(now)
-                             .validUntil(now.plusYears(ConfiguredDefaultPolicy.DEFAULT_POLICY_LIFETIME_YEARS))
-                             .permissions(List.of(Permission.builder()
-                                                            .action(PolicyType.USE)
-                                                            .constraint(new Constraints(constraints, constraints))
-                                                            .build()))
-                             .build());
+    private void handleTrialToModifyFallbackPolicy(final String policyId) {
+        if (isFallbackPolicyFromConfiguration(policyId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    ("The policy '%s' is a configured default policy which cannot be modified. "
+                     + "However you can define custom default policies via the API by registering a policy "
+                     + "without a business partner number. "
+                     + "These will take precedence over configured default policies.").formatted(policyId));
+        }
     }
 
 }

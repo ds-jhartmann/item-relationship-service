@@ -8,6 +8,28 @@ _**For better traceability add the corresponding GitHub issue number in each cha
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed already merged implementation from _"Access and Usage Policy Validation flow correction. #757"_ 
+  where fallback to default policy was not implemented correctly.
+- Improved exception handling concerning invalid date format in search parameters for `GET /irs/policies/paged`. #639
+- Change policy to include full namespace `https://w3id.org/catenax/policy/` instead of `cx-policy:` 
+  in some remaining code places (in context of #794).
+
+### Changed
+
+- The date search operators `AFTER_LOCAL_DATE` and `BEFORE_LOCAL_DATE` for fields `createdOn` and `validUntil` support any ISO date time now (relates to #639 and #750).
+- Improved documentation for `GET /irs/policies/paged` endpoint. #639
+- Cleanup in IrsApplicationTest.generatedOpenApiMatchesContract 
+  (removed obsolete ignoringFields, improved assertion message)
+- Allow local URLs as IRS Job complete callback URLs. eclipse-tractusx/traceability-foss#511
+
+## [5.4.0] - 2024-07-22
+
+### Changed
+- Default policies are now configured using JSON in accordance with the ODRL schema. #542
+- Improved the exception handling for modification attempts on read-only default policies. Such actions now result in a 400 BAD REQUEST response with a user-friendly error message. #734
+
 ## [5.3.0] - 2024-07-15
 
 ### Added
@@ -27,6 +49,9 @@ _**For better traceability add the corresponding GitHub issue number in each cha
 - Replaced technical error message when trying to delete the configured default policy with a user-friendly message.
 - Renamed EdcCreateContractDefinitionRequest to EdcContractDefinition because it's used for both get and post eclipse-tractusx/traceability-foss#1190
 
+### Known knowns
+
+- [#755] Duplicate callbacks for jobs
 
 ## [5.2.0] - 2024-07-03
 
@@ -731,7 +756,8 @@ _**For better traceability add the corresponding GitHub issue number in each cha
 - **Select Aspects you need**  You are able to select the needed aspects for which you want to collect the correct endpoint information.
 
 
-[Unreleased]: https://github.com/eclipse-tractusx/item-relationship-service/compare/5.3.0...HEAD
+[Unreleased]: https://github.com/eclipse-tractusx/item-relationship-service/compare/5.4.0...HEAD
+[5.4.0]: https://github.com/eclipse-tractusx/item-relationship-service/compare/5.3.0...5.4.0
 [5.3.0]: https://github.com/eclipse-tractusx/item-relationship-service/compare/5.2.0...5.3.0
 [5.2.0]: https://github.com/eclipse-tractusx/item-relationship-service/compare/5.1.4...5.2.0
 [5.1.4]: https://github.com/eclipse-tractusx/item-relationship-service/compare/5.1.3...5.1.4
