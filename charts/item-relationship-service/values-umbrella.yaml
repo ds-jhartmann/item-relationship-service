@@ -16,7 +16,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 image:
-  repository: kind-registry:5000/irs-api
+  repository: irs-api
   tag: testing
 
 resources:
