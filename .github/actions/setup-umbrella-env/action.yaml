@@ -32,7 +32,7 @@ runs:
 
     - name: Get Cluster info
       shell: bash
-      run: kubectl cluster-info --context kind-kind
+      run: kubectl cluster-info --context minikube
 
     - name: Informational - describe node
       shell: bash
