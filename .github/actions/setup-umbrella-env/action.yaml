@@ -70,8 +70,7 @@ runs:
       run: |
         helm dependency update charts/tx-data-provider
         helm dependency update charts/umbrella
-        helm install umbrella charts/umbrella -f charts/umbrella/values-adopter-irs.yaml --timeout 10m \
-        --namespace e2e-testing --create-namespace --debug
+        helm install umbrella charts/umbrella -f charts/umbrella/values-adopter-irs.yaml --timeout 10m --namespace e2e-testing --create-namespace --debug
 
     - name: Verify installation
       if: always()
@@ -79,7 +78,7 @@ runs:
       run: |
         kubectl get pods -n e2e-testing
         kubectl logs svc/bdrs-server -n e2e-testing
-        kubectl logs svc/mock-util-service -n e2e-testing
+        kubectl logs svc/ssi-dim-wallet-service -n e2e-testing
         kubectl logs svc/umbrella-dataprovider-edc-controlplane -n e2e-testing
         kubectl get ingresses -n e2e-testing
 
